@@ -1,7 +1,7 @@
 import os
 import datetime
 import time
-from PyQt5.QtWidgets import QApplication, QProgressBar, QWidget, QLabel, QVBoxLayout, QHBoxLayout, QPushButton
+from PyQt5.QtWidgets import QApplication, QProgressBar, QWidget, QLabel, QVBoxLayout, QHBoxLayout, QPushButton, QTextEdit
 from PyQt5.QtGui import QTextDocument, QBrush, QColor
 from PyQt5.QtCore import Qt
 tic = 0
@@ -35,8 +35,9 @@ def main():
     directory_path = "C:\\"
 
     labelProgress = QLabel(window)
-    labelSearchResults = QLabel(window)
-    labelSearchResults.setGeometry(30, 110, 300, 25)
+    labelSearchResults = QTextEdit(window)
+    labelSearchResults.setGeometry(30, 110, 300, 200)
+    labelSearchResults.setReadOnly(True)
     labelProgress.setGeometry(30, 70, 300, 25)
 
     button_layout = QHBoxLayout()
@@ -94,7 +95,7 @@ def calculation_and_save_data(directory_path, label, progress_bar, labelDt, labe
                 for filename in filenames:
                     filepath = os.path.join(dirpath, filename)
                     size = os.path.getsize(filepath)
-                    labelSearchResults.setText(filename)#
+                    labelSearchResults.append(filename)#
                     QApplication.processEvents()
                     f.write(f"{size} ~|~ {filepath}\n")
                     current_size += size
@@ -109,73 +110,14 @@ def calculation_and_save_data(directory_path, label, progress_bar, labelDt, labe
     with open("data.txt", "r", encoding="utf-8") as fr:
         labelDt.setText(f"The last example: {fr.readlines()[0]}")
     label.setText("")
-    labelSearchResults.setText("END")
+    labelSearchResults.append("END")
     progress_bar.format()
 
 def compare_items(directory_path, labelSearchResults, label):
     btn2_FoldersCOMPARE(directory_path, labelSearchResults, label)
     # btn_FilesCOMPARE(directory_path, labelSearchResults, label)
-    current_text = labelSearchResults.text() + "\n"
+    current_text = labelSearchResults.toPlainText() + "\n"
     labelSearchResults.setText(current_text+"\n"+"{END}")
-def btn_FilesCOMPARE(directory_path, labelSearchResults, label):
-    # labelSearchResults.clear()
-    # timeStart = time.time()
-
-
-
-    # historiFile = open("folder_sizes.txt", "r", encoding="utf-8")
-    # historiFile_lines = historiFile.readlines()
-    # dataF = {}
-    # for line in historiFile_lines:
-    #     elements = line.split(" ~|~ ")
-    #     dataF[elements[1][:-1]] = elements[0]
-
-
-    # spinner = ["-", "\\", "|", "/"]
-    historiFile = open("data.txt", "r", encoding="utf-8")
-    historiFile_lines = historiFile.readlines()[1:]
-    data = {line.split(" ~|~ ")[1][:-1]: line.split(" ~|~ ")[0] for line in historiFile_lines}
-    n=0
-    for dirpath, dirnames, filenames in os.walk(directory_path):
-    #     total_size = sum([os.path.getsize(os.path.join(dirpath, file)) for file in filenames])
-    #     if dirpath in data and data[dirpath] == str(total_size):
-    #         continue
-    #     current_text = labelSearchResults.text() + "\n"
-    #     if dirpath not in data:
-    #         current_text += f"{{NEW folder}} {dirpath}"
-    #     else:
-    #         current_text += f"{{MODIFIED folder}} {dirpath}"
-    #     labelSearchResults.setText(current_text)
-        for filename in filenames:
-            filepath = os.path.join(dirpath, filename)
-            if n % 2 == 0:
-                labelSearchResults.setStyleSheet("color:red")
-                # label.setText(dirpath+"\n"+filename)
-                # QApplication.processEvents()
-            else:
-                labelSearchResults.setStyleSheet("color:blue")
-            label.setText(dirpath + "\n" + filename)
-            QApplication.processEvents()
-            # labelSearchResults.setText(filepath)
-            # QApplication.processEvents()
-            n+=1
-            try:
-                size = os.path.getsize(filepath)
-                if filepath in data and data[filepath] == str(size):
-                    continue
-                current_text = labelSearchResults.text() + "\n"
-                if filepath not in data:
-                    current_text += f"{{NEW file}} {filepath}"
-                else:
-                    current_text += f"{{MODIFIED file}} {filepath}"
-                labelSearchResults.setText(current_text)
-                QApplication.processEvents()
-            except Exception as e:
-                print(e)
-                print("\n\n")
-    # perform_directory_NOfiles_compare(directory_path, labelSearchResults)
-    # labelSearchResults.setText(labelSearchResults.text() + f"\n\n {{FINISHED}} {int(time.time()-timeStart)} sec.")
-
 
 def btn2_FoldersCOMPARE(directory_path, labelSearchResults, label):
     historiFile = open("folder_sizes.txt", "r", encoding="utf-8")
@@ -189,10 +131,14 @@ def btn2_FoldersCOMPARE(directory_path, labelSearchResults, label):
     for dirpath, dirnames, filenames in os.walk(directory_path):
         label.setText(dirpath + "\n" + filename)
         QApplication.processEvents()
-        total_size = sum([os.path.getsize(os.path.join(dirpath, file)) for file in filenames])
+        try:
+            total_size = sum([os.path.getsize(os.path.join(dirpath, file)) for file in filenames])
+        except Exception as e:
+            print(e)
+            total_size=0
         if dirpath in dataF and dataF[dirpath] == str(total_size):
             continue
-        current_text = labelSearchResults.text() + "\n"
+        current_text = labelSearchResults.toPlainText() + "\n"
         if dirpath not in dataF:
             current_text += f"{{NEW folder}} {dirpath}"
         else:
@@ -201,51 +147,19 @@ def btn2_FoldersCOMPARE(directory_path, labelSearchResults, label):
             label.setText(dirpath+"\n"+filename)
             QApplication.processEvents()
             filepath = os.path.join(dirpath, filename)
-            size = os.path.getsize(filepath)
+            try:
+                size = os.path.getsize(filepath)
+            except:
+                size=0
             if filepath in dataF and dataF[filepath] == str(size):
                 continue
-            current_text = labelSearchResults.text() + "\n"
+            current_text = labelSearchResults.toPlainText() + "\n"
             if filepath not in dataF:
                 current_text += f"{{NEW file}} {filepath}"
             else:
                 current_text += f"{{MODIFIED file}} {filepath}"
             labelSearchResults.setText(current_text)
             QApplication.processEvents()
-
-            # QApplication.processEvents()
-        # QApplication.processEvents()
-    # labelSearchResults.setText(current_text+"\n\n")
-    # perform_directory_NOfiles_compare(directory_path, labelSearchResults)
-    # labelSearchResults.setText(labelSearchResults.text() + f"\n\n {{FINISHED}} {int(time.time() - timeStart)} sec.")
-
-
-def perform_directory_NOfiles_compare(directory_path, labelSearchResults):
-    with open("folder_sizes.txt", "r", encoding="utf-8") as historiFile:
-        historiFile_lines = historiFile.readlines()
-        data = {line.split(" ~|~ ")[1][:-1]: line.split(" ~|~ ")[0] for line in historiFile_lines}
-
-    for dirpath, dirnames, filenames in os.walk(directory_path):
-        total_size = sum([os.path.getsize(os.path.join(dirpath, file)) for file in filenames])
-        if dirpath in data and data[dirpath] == str(total_size):
-            continue
-        current_text = labelSearchResults.text() + "\n"
-        if dirpath not in data:
-            current_text += f"{{NEW folder}} {dirpath}"
-        else:
-            current_text += f"{{MODIFIED folder}} {dirpath}"
-        labelSearchResults.setText(current_text)
-
-
-def calculate_directory_sizes(directory_path, label):
-    with open("folder_sizes.txt", "w", encoding="utf-8") as file:
-        for dirpath, dirnames, filenames in os.walk(directory_path):
-            total_size = sum([os.path.getsize(os.path.join(dirpath, file)) for file in filenames])
-            file.write(f"{total_size} ~|~ {dirpath}\n")
-            label.setText(f"{dirpath} ~|~ {total_size}\n")
-            QApplication.processEvents()
-
-
+    # labelSearchResults.setText(labelSearchResults.toPlainText() + f"\n\n {{FINISHED}} {int(time.time() - timeStart)} sec.")
 if __name__ == '__main__':
     main()
-"""разобраться пошагово с работой кнопки1 и кнопки2, прогресбар не до конца доходит,
-потом разукрась интерфейс (вроде)"""
